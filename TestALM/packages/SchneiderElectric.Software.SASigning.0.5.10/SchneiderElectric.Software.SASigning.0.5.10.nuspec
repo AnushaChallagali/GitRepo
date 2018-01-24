@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>SchneiderElectric.Software.SASigning</id>
+    <version>0.5.10</version>
+    <authors>Frederic Forjan</authors>
+    <owners>Frederic Forjan</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Meta Packages triggering signing during build</description>
+    <releaseNotes>Using SASigning.exe
+Support certificate as parameter
+Update for C++ build
+Update to sign MSM - 0.5.4
+Do not resign already signed assemblies - 0.5.5
+Sign wix bundles - 0.5.6
+Sign VSTO files - 0.5.7
+Fix issue related to empty VSTOfiles - 0.5.8
+Sign WIX when SASigning is set - 0.5.9
+Manifest and vsto files are explicit signing, not implicit 0.5.10</releaseNotes>
+  </metadata>
+</package>

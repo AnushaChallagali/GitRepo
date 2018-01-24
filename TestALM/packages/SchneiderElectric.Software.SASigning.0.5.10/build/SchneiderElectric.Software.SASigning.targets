@@ -1,0 +1,47 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PowerShellExe Condition=" '$(PowerShellExe)'=='' ">$(WINDIR)\System32\WindowsPowerShell\v1.0\powershell.exe</PowerShellExe>
+  </PropertyGroup>
+  <!-- non c++ project and wix project, consume the FileWrites property before copy to only generated files are signed-->
+  <Target Name="InternalSASigning" Condition=" '$(MSBuildProjectExtension)'!= '.vcxproj' And '$(MSBuildProjectExtension)'!= '.wixproj'" BeforeTargets="CopyFilesToOutputDirectory" >
+    <Exec Condition="'$(SASigning)' == 'yes'" Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot;  &quot;$(SACertificate)&quot; &quot;@(FileWrites)&quot;" />
+  </Target>
+  
+  <!-- generic after build signing -->
+  <Target Name="AfterBuild" DependsOnTargets="InternalVSTOSigningTarget">
+    <Exec Condition=" '$(MSBuildProjectExtension)' == '.vcxproj' And '$(SASigning)' == 'yes'"  Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot; &quot;$(SACertificate)&quot; &quot;$(TargetPath)&quot;" />
+	<Exec Condition=" '$(SASigningFiles)' != '' And '$(SASigning)' == 'yes'" Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot; &quot;$(SACertificate)&quot; &quot;$(SASigningFiles)&quot;" />
+  </Target>
+  
+  <!-- Signing VSTO Targets -->
+  <Target Name="InternalVSTOSigningTarget" Condition="'$(SASigning)' == 'yes'" >
+	  <Message Condition="'%(VSTOSASigning.Identity)' != ''" Text=" Signing %(VSTOSASigning.Identity) including  %(VSTOSASigning.ManifestFile)"/> 
+		<!-- first sign the manifest -->
+      <Exec Condition="'%(VSTOSASigning.Identity)' != ''" Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot; &quot;$(SACertificate)&quot; &quot;%(VSTOSASigning.ManifestFile)&quot; $true" />
+	  <!--   update our VSTO -->
+	  <Exec Condition="'%(VSTOSASigning.Identity)' != ''" Command="&quot;$(TargetFrameworkSDKToolsDirectory)mage.exe&quot; -update &quot;%(VSTOSASigning.Identity)&quot; -appmanifest &quot;%(VSTOSASigning.ManifestFile)&quot;" />
+	  <!-- and sign it -->
+	  <Exec Condition="'%(VSTOSASigning.Identity)' != ''" Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot; &quot;$(SACertificate)&quot; &quot;%(VSTOSASigning.Identity)&quot; $true" />
+  </Target>
+  
+  <!-- Target for Wix --> 
+  <PropertyGroup>
+      <SignOutput Condition="'$(SASigning)' == 'yes'">true</SignOutput>
+  </PropertyGroup>
+  <Target Name="SignBundleEngine" Condition="'$(SASigning)' == 'yes'" >
+    <Message Text="Signing Bundle Engine"/>
+    <Exec Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot;  &quot;$(SACertificate)&quot; &quot;@(SignBundleEngine)&quot;" />    
+  </Target>
+  <Target Name="SignBundle" Condition="'$(SASigning)' == 'yes'" >
+    <Message Text="Signing Bundle"/>
+    <Exec Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot;  &quot;$(SACertificate)&quot; &quot;@(SignBundle)&quot;" />
+  </Target>
+  <Target Name="SignMsi" Condition="'$(SASigning)' == 'yes'" >
+    <Message Text="Signing Msi"/>
+    <Exec Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot;  &quot;$(SACertificate)&quot; &quot;@(SignMsi)&quot;" />
+  </Target>
+  <Target Name="SignCabs" Condition="'$(SASigning)' == 'yes'" >
+    <Message Text="Signing Cabs"/>
+    <Exec Command="$(PowerShellExe) -NonInteractive -executionpolicy bypass -File &quot;$(MSBuildThisFileDirectory)MsBuildSign.ps1&quot;  &quot;$(SACertificate)&quot; &quot;@(SignCabs)&quot;" />
+  </Target>
+</Project>
